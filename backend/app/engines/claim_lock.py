@@ -13,6 +13,9 @@ def claim_allowed(status: str, claimer: str | None, now: datetime, expires_at: s
     """Only open wishes (or expired locks) can be claimed."""
     if status == "fulfilled":
         return {"ok": False, "reason": "already_fulfilled"}
+    if status == "sourcing_paused":
+        # 拍板: paused 期间禁止 transfer(他人认领/接管)
+        return {"ok": False, "reason": "sourcing_paused"}
     if status == "claimed" and claimer:
         if expires_at and parse_ts(expires_at) <= now:
             return {"ok": True, "reason": "ttl_expired_reclaim"}
@@ -31,6 +34,7 @@ def lock_payload(claimer: str, now: datetime, ttl_seconds: int) -> dict:
     }
 
 def release_if_expired(status: str, expires_at: str | None, now: datetime) -> dict | None:
+    # 拍板: sourcing_paused 一律不扫尾释放 —— 只认 status=='claimed' 的到期锁
     if status != "claimed" or not expires_at:
         return None
     if parse_ts(expires_at) <= now:
