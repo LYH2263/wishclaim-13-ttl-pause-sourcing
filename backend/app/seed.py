@@ -5,10 +5,15 @@ def init_db():
     c.executescript("""
     CREATE TABLE IF NOT EXISTS wishes(
       id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, note TEXT, status TEXT,
-      claimer TEXT, claimed_at TEXT, expires_at TEXT, data_quality TEXT
+      claimer TEXT, claimed_at TEXT, expires_at TEXT, paused_at TEXT, data_quality TEXT
     );
     CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
     """)
+    # Lightweight migration for databases created before the sourcing-pause column.
+    cols = [r["name"] for r in c.execute("PRAGMA table_info(wishes)")]
+    if "paused_at" not in cols:
+        c.execute("ALTER TABLE wishes ADD COLUMN paused_at TEXT")
+        c.commit()
     if c.execute("SELECT COUNT(*) c FROM wishes").fetchone()["c"] == 0:
         c.executemany(
             "INSERT INTO wishes(title,note,status,claimer,claimed_at,expires_at,data_quality) VALUES (?,?,?,?,?,?,?)",

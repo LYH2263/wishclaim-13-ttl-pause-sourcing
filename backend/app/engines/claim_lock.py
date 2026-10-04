@@ -11,6 +11,8 @@ def parse_ts(s: str) -> datetime:
 
 def claim_allowed(status: str, claimer: str | None, now: datetime, expires_at: str | None) -> dict:
     """Only open wishes (or expired locks) can be claimed."""
+    if status == "sourcing_paused":
+        return {"ok": False, "reason": "sourcing_paused"}
     if status == "fulfilled":
         return {"ok": False, "reason": "already_fulfilled"}
     if status == "claimed" and claimer:

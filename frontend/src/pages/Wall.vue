@@ -6,7 +6,7 @@
       <article v-for="w in rows" :key="w.id" class="card" @click="$router.push('/wishes/'+w.id)">
         <h3>{{ w.title || '（无标题）' }}</h3>
         <p>{{ w.note }}</p>
-        <span class="tag">{{ w.status }} · {{ w.data_quality }}</span>
+        <WishTag :wish="w" quality />
       </article>
     </div>
   </div>
@@ -14,6 +14,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '../api'
+import WishTag from '../components/WishTag.vue'
 const rows = ref([])
 onMounted(async () => { rows.value = await api('/wishes') })
 </script>

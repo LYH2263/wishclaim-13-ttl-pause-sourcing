@@ -11,6 +11,11 @@ def test_ttl_allows_reclaim():
     r = claim_allowed("claimed", "alice", NOW, (NOW - timedelta(minutes=1)).isoformat())
     assert r["ok"] is True
 
+def test_paused_still_holds_mutex():
+    r = claim_allowed("sourcing_paused", "alice", NOW, (NOW + timedelta(hours=1)).isoformat())
+    assert r["ok"] is False and r["reason"] == "sourcing_paused"
+    assert release_if_expired("sourcing_paused", (NOW - timedelta(seconds=1)).isoformat(), NOW) is None
+
 def test_lock_payload_sets_expiry():
     p = lock_payload("bob", NOW, 3600)
     assert p["status"] == "claimed" and p["claimer"] == "bob"
